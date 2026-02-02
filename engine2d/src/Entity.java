@@ -12,20 +12,14 @@ public class Entity {
 
     Matrix transformation;
 
+    Entity(){
+
+    }
     Entity(double [][] vertices, int [][] ind, Matrix m){
-        objectSpaceVectors = new double[vertices.length][vertices[0].length+1];
+        initializeVectorSpaces(vertices);
         this.indices = ind;
-        for(int i = 0; i < vertices.length; i++){
-            for(int j = 0; j < vertices[i].length; j++){
-                objectSpaceVectors[i][j] = vertices[i][j];
-            }
-            objectSpaceVectors[i][3] = 1;
-        }
         this.transformation = m;
-        worldSpaceVectors = new double[vertices.length][vertices[0].length+1];
-        viewSpaceVectors = new ArrayList<>();
-        finalVectors = new ArrayList<>();
-        finalIndices = new ArrayList<>();
+        initializeLists();
     }
     void convertToWorldSpace(){
         for(int k = 0; k < objectSpaceVectors.length; k++){
@@ -37,22 +31,84 @@ public class Entity {
             }
         }
     }
-    void transformEntity(int[] translate, int[] scale, char axis, int degree){
-        transformation = Matrix.translate(translate[0], translate[1], translate[2])
-        .multiply(Matrix.scale(scale[0], scale[1], scale[2]));
-        switch (axis) {
-            case 'x':
-                transformation.multiply(Matrix.rotatex(degree));
-                break;
-            case 'y':
-                transformation.multiply(Matrix.rotatey(degree));
-                break;
-            case 'z':
-                transformation.multiply(Matrix.rotatez(degree));
-                break;
-            default:
-                throw new AssertionError();
+    void initializeVectorSpaces(double [][] vertices){
+        objectSpaceVectors = new double[vertices.length][vertices[0].length+1];
+        worldSpaceVectors = new double[vertices.length][vertices[0].length+1];
+        for(int i = 0; i < vertices.length; i++){
+            for(int j = 0; j < vertices[i].length; j++){
+                objectSpaceVectors[i][j] = vertices[i][j];
+            }
+            objectSpaceVectors[i][3] = 1;
         }
+    }
+    void initializeLists(){
+        viewSpaceVectors = new ArrayList<>();
+        finalVectors = new ArrayList<>();
+        finalIndices = new ArrayList<>();
+    }
+    void cubeMesh(){
+        double [][] vertices = {
+            {0.5,0.5,0.5}, //0
+            {-0.5,0.5,0.5}, //1
+            {0.5,0.5,-0.5}, //2
+            {-0.5,0.5,-0.5}, //3
+            {0.5,-0.5,0.5}, //4
+            {0.5, -0.5, -0.5}, //5
+            {-0.5,-0.5,0.5}, //6
+            {-0.5,-0.5,-0.5} //7
+        };
+        int [][] cubeIndices = {
+            // top
+            {1,0,2},
+            {1,2,3},
+            //front
+            {3,2,5},
+            {3,5,7},
+            //right
+            {2,0,4},
+            {2,4,5},
+            // left
+            {6, 1, 7},
+            {7,1,3},
+            //back
+            {4,0,1},
+            {4,1,6},
+            //bottom
+            {4,6,5}, 
+            {7,5,6} 
+        };
+        initializeVectorSpaces(vertices);
+        this.indices = cubeIndices;
+        initializeLists();
+        transformation = Matrix.Identity();
+    }
+    Entity setWorldPosition(double x, double y, double z){
+        transformation = Matrix.translate(x, y, z);
+        return this;
+    }
+    Entity resetTransformation(){
+        transformation = Matrix.Identity();
+        return this;
+    }
+    Entity translate(double x, double y, double z){
+        transformation = transformation.multiply(Matrix.translate(x, y, z));
+        return this;
+    }
+    Entity scale(double x, double y, double z){
+        transformation = transformation.multiply(Matrix.scale(x, y, z));
+        return this;
+    }
+    Entity rotatex(double degree){
+        transformation = transformation.multiply(Matrix.rotatex(degree));
+        return this;
+    }
+    Entity rotatey(double degree){
+        transformation = transformation.multiply(Matrix.rotatey(degree));
+        return this;
+    }
+    Entity rotatez(double degree){
+        transformation = transformation.multiply(Matrix.rotatez(degree));
+        return this;
     }
     void sortVertices(){
         for(int i = 0; i < finalIndices.size(); i++){

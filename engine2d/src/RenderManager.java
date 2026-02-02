@@ -1,8 +1,8 @@
 public class RenderManager{   
+   
    static void renderOnScreen(CameraManager c, WindowManager w, Entity m){
       for(int i = 0; i < m.finalVectors.size(); i++){
          if(m.finalVectors.get(i)[1] <= w.length && m.finalVectors.get(i)[1] >= -(w.length)){
-            // w.drawPixels((int)m.finalVectors.get(i)[0],(int)m.finalVectors.get(i)[1], true);
             int x = (int)m.finalVectors.get(i)[0];
             int y = (int)m.finalVectors.get(i)[1];
             int z = (int)m.finalVectors.get(i)[2];
@@ -58,7 +58,6 @@ public class RenderManager{
                if(depthTest(w, j, i+yStart, z)){
                   w.depthBuffer[j][i+yStart] = z;
                   w.colorBuffer[j][i+yStart] = ((j==xLeftValues[i] || j == xRightValues[i]-1)) ? 0xFFFF0000 : 0xFFFFFFFF;
-                  // w.drawPixels(j, i+yStart, ((j==xLeftValues[i] || j == xRightValues[i]-1)) ? 0xFFFF0000 : false);
                } 
             } catch (Exception e) {
                System.out.println("error in drawing");
@@ -74,7 +73,6 @@ public class RenderManager{
     if (y1 == y2) return new int[0];
 
     if (y1 > y2) {
-        // swap so y1 < y2
         int tx = x1, ty = y1;
         x1 = x2; y1 = y2;
         x2 = tx; y2 = ty;

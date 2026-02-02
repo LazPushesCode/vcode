@@ -1,116 +1,67 @@
 import java.util.ArrayList;
+
 public class main{
     public static void main(String[] args){
         WindowManager wm = new WindowManager(920, 600);
-        CameraManager cm = new CameraManager(0,0, 0, 0, 0, 0, wm.width, wm.length,70);
+        CameraManager cm = new CameraManager(wm.width, wm.length,100);
+        InputManager im = new InputManager();
 
-        Entity cube = new Entity(new double[][]{
-            {0.5,0.5,0.5}, //0
-            {-0.5,0.5,0.5}, //1
-            {0.5,0.5,-0.5}, //2
-            {-0.5,0.5,-0.5}, //3
-            {0.5,-0.5,0.5}, //4
-            {0.5, -0.5, -0.5}, //5
-            {-0.5,-0.5,0.5}, //6
-            {-0.5,-0.5,-0.5} //7
-        }, new int[][] {
-            // top
-            {1,0,2},
-            {1,2,3},
+        cm.setCameraPosition(1, 0, 0);
 
-            //front
-            {3,2,5},
-            {3,5,7},
-
-            //right
-            {2,0,4},
-            {2,4,5},
-
-            // left
-            {6, 1, 7},
-            {7,1,3},
-
-            //back
-            {4,0,1},
-            {4,1,6},
-
-            //bottom
-            {4,6,5}, 
-            {7,5,6} 
-        }, Matrix.translate(0,0, 3)
-        .multiply(Matrix.scale(1,1,1))
-        .multiply(Matrix.rotatez(0)));
+        Entity cube = new Entity();
+        cube.cubeMesh();
+        cube.translate(0,0,3);
         
-        Entity floor = new Entity(new double[][]{
-            {0.5,0.5,0.5}, //0
-            {-0.5,0.5,0.5}, //1
-            {0.5,0.5,-0.5}, //2
-            {-0.5,0.5,-0.5}, //3
-            {0.5,-0.5,0.5}, //4
-            {0.5, -0.5, -0.5}, //5u
-            {-0.5,-0.5,0.5}, //6
-            {-0.5,-0.5,-0.5} //7
-        }, new int[][] {
-            // top
-            {1,0,2},
-            {1,2,3},
+        Entity cube2 = new Entity();
+        cube2.cubeMesh();
+        cube2.translate(0, -1, 0);
+        cube2.scale(1, 1, 1);
 
-            //front
-            {3,2,5},
-            {3,5,7},
-
-            //right
-            {2,0,4},
-            {2,4,5},
-
-            // left
-            {6, 1, 7},
-            {7,1,3},
-
-            //back
-            {4,0,1},
-            {4,1,6},
-
-            //bottom
-            {4,6,5}, 
-            {7,5,6} 
-        }, Matrix.translate(1,1, 5)
-        .multiply(Matrix.scale(3,1,1))
-        .multiply(Matrix.rotatez(0)));
+        Entity cube3 = new Entity();
+        cube3.cubeMesh();
+        cube3.translate(-1,0,3).scale(1, 1, 1);
 
         wm.openWindow();
+        wm.addInputListener(im);
         ArrayList<Entity> entityList = new ArrayList<>();
         entityList.add(cube);
-        entityList.add(floor);
-
-        double i = 0;
-        while(i != 360){
+        entityList.add(cube2);
+        entityList.add(cube3);
+        long currentTime = (System.currentTimeMillis());
+        long previousTime = 0;
+        double deltaTime = 0;
+        double rotate = 0.01;
+        while(true){
             try {
+                deltaTime = (currentTime - previousTime)%1000;
+                double move = 0.01 * deltaTime;
+                cube3.translate(0, 0, 0).rotatex(-1).rotatey(1).rotatez(1).scale(1, 1, 1);
+                rotate += 0.001;
+                
+                cube.scale(1,1,1);
                 wm.clearScreen();
+                cm.pollInput(im, deltaTime);
+                
+                cm.updateCameraMatrix();
                 for(Entity et : entityList){
-                    renderEntity(et, cm, wm);
+                    renderEntity(cm, wm, et);
                 }
                 wm.updateScreen();
-                
                 Thread.sleep(16);
-                i += 0.01;
-                cube.transformation = Matrix.translate(i,0, 3)
-                .multiply(Matrix.scale(1,1,1))
-                .multiply(Matrix.rotatex(i*100)).multiply(Matrix.rotatey(i*100)).multiply(Matrix.rotatez(i*100));
-                 floor.transformation = Matrix.translate(-i,0, 3)
-                .multiply(Matrix.scale(1,1,1))
-                .multiply(Matrix.rotatex(-0)).multiply(Matrix.rotatey(-0)).multiply(Matrix.rotatez(-0));
-            } catch (Exception e) {
 
+                previousTime = currentTime;
+                currentTime = (System.currentTimeMillis());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        
     }
-    public static void renderEntity(Entity m, CameraManager c, WindowManager w){
-        m.convertToWorldSpace();
-        c.cull(m);
-        w.convertToNDC(m);
-        RenderManager.renderOnScreen(c, w, m);
-        m.resetFrameData();
-    }
+    static void renderEntity(CameraManager cm, WindowManager wm, Entity et){
+      et.convertToWorldSpace();
+      cm.convertToViewSpace(et);
+      TriangleManager.cullTriangles(et, cm);
+      wm.convertToNDC(et);
+      wm.renderOnScreen(cm, et);
+      et.resetFrameData();
+   }
 }
